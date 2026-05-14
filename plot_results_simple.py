@@ -173,7 +173,7 @@ sig_data_store = []
 mse_prior_store = []
 sig_prior_store = []
 
-# # Plot results for each r value and save them
+## Plot results for each r value and save them
 for i in range(len(list)):
     r_x = list[i]
     title = label_list[i]
@@ -192,12 +192,13 @@ for i in range(len(list)):
     mse_prior_store.append(mse_prior)
     sig_prior_store.append(var_avg_prior)
 
+## Save expected variance values for data regions, using the formula derived from the Inverse Gamma distribution, for each r value. This is the expected variance value for the data regions, given the prior and the amount of data in those regions.
 exp_var_values_data_regions = []
 for r in r_store:
     r_mu = r  # Data is 20 times more important than the prior
     r_var = r_mu  # Data is at least 20 times more important than the prior.
     n_H_var = desired_ratio_var_H_overlap(r_var, alpha_0)
-    exp_var_data_regions = (n_H_var*hifi_regions_noise_stds[0]**2 + 4*beta_0)/(n_H_var + 4*(alpha_0+1))
+    exp_var_data_regions = (n_H_var*hifi_regions_noise_stds[0]**2 + 2*beta_0)/(n_H_var + 2*(alpha_0+1))
     exp_var_values_data_regions.append(exp_var_data_regions)
 
 # Save data to a CSV file.
@@ -217,13 +218,14 @@ data = {
     'mu_prior_store': mse_prior_store,
     'mu_all_store': mse_all_store
 }
+
 # Create a DataFrame from the dictionary
 df = pd.DataFrame(data)
 
 # Save the DataFrame to a CSV file
 df.to_csv(r'variance_data.csv', index=False)
 
-# Plot Sigma and MSE for all three models
+## Plot Sigma and MSE for all three models
 fig, ax = plt.subplots(dpi=500)  # Create figure
 ax.plot(r_store, sig_data_store, label='Avg $\sigma^2_{Y_H}(x)$ in Hi-Fi Data Region', color='green', marker='x', linewidth = linewidth)
 ax.plot(r_store, sig_prior_store, label='Avg $\sigma^2_{Y_H}(x)$ in No Hi-Fi Data Region', color='blue', marker='x', linewidth = linewidth)
@@ -236,14 +238,6 @@ plt.title("Avg $\sigma^2_{Y_H}(x)$ against choice of $r$", fontsize=title_fontsi
 
 # # Increase number of y-axis ticks (notches)
 ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=12))  # Adjust nbins for more/less ticks
-#
-# # Enable gridlines at y-axis ticks
+# Enable gridlines at y-axis ticks
 ax.grid(True, which='both', axis='y', linestyle='--')
-
-# Add labels for the data points
-# for i in range(len(r_store)):
-#     ax.annotate(f'({r_store[i]:.2f}, {sig_data_store[i]:.2f})', (r_store[i], sig_data_store[i]),textcoords="offset points", xytext=(0, 5), ha='center', fontsize=7)
-#     ax.annotate(f'({r_store[i]:.2f}, {sig_prior_store[i]:.2f})', (r_store[i], sig_prior_store[i]), textcoords="offset points", xytext=(0,5), ha='center', fontsize=7)
-    #ax.annotate(f'({r_store[i]:.2f}, {sig_all_store[i]:.2f})', (r_store[i], sig_all_store[i]), textcoords="offset points", xytext=(0,5), ha='center', fontsize=7)
-
-plt.savefig(r"var_r_plot_with_annotations")
+plt.savefig(r"var_r_plot")

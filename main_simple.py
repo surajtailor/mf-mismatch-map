@@ -1,11 +1,9 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 from training_functions import trainer, pretrainer
 from net import NetAnyFunctional
 from utilities import Scaler, beta_calculator, desired_ratio_var_H_overlap, desired_var_0_mu_H_overlap, create_scalers, scale_data
 from data_generation import generate_hifi_lofi_data, generate_lofi_data, generate_pretrain_lofi_data, generate_test_data
-from torch.utils.data import DataLoader
 import os
 import mlflow
 
@@ -101,6 +99,7 @@ for exp_num in ["simple_scaled"]:
     for r in r_store:
         r_mu = r  # Data is 20 times more important than the prior
         r_var = r_mu  # Data is at least 20 times more important than the prior.
+
         # Calculate values for n_H for desired ratio for r_mu
         n_H_var = desired_ratio_var_H_overlap(r_var, alpha_0)
         var_0 = desired_var_0_mu_H_overlap(r_mu, n_H_var, var_H)  # Since n_values have to be the same.
@@ -109,7 +108,7 @@ for exp_num in ["simple_scaled"]:
 
     # Training Parameters
     pre_train_iter = 2000
-    train_n_iter = 1000
+    train_n_iter = 4000
     lr = 1e-3
     num_workers = 0
     batch_size = 80
@@ -121,7 +120,7 @@ for exp_num in ["simple_scaled"]:
 
     # Tau adjustment
     tau_adjustment = True
-    tau = 0.7
+    tau = 0.8
 
     # Plot frequency
     valid_freq = 1000

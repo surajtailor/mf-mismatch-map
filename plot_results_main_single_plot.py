@@ -16,7 +16,7 @@ other_linewidth = 1
 linewidth = 1.25
 scatter_size = 1.75
 
-for exp_num in ["exp_1"]:
+for exp_num in ["exp_1", "exp_2"]:
     if exp_num == "exp_1":
         def function(x):
             return (x - np.sqrt(2)) * (np.sin(8 * np.pi * x)) ** 2
@@ -188,7 +188,7 @@ for exp_num in ["exp_1"]:
     beta_0 = beta_calculator(alpha_0, mode_var_h)  # This is the value of beta_0 that will give us the expected value of var_H.
     var_H = var_H / (y_Global_Scaler.std ** 2)  # This is the max value for the Variance on the H value.
 
-    r_store = [25]
+    r_store = [50]
     var_0_store = []
     n_H_store = []
     for r in r_store:

@@ -16,10 +16,10 @@ def beta_calculator(alpha, mode):
     return beta
 
 def desired_ratio_var_H_overlap(r, alpha):
-    return 4 * r * (alpha + 1)
+    return 2 * r * (alpha + 1)
 
 def desired_var_0_mu_H_overlap(r, n_H, var_H):
-    return var_H * 2 * r / n_H
+    return var_H  * r / n_H
 
 class Scaler:
     def __init__(self):

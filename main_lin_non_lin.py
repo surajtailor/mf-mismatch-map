@@ -1,11 +1,9 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 from training_functions import trainer, pretrainer
 from net import NetAnyFunctional
 from utilities import Scaler, beta_calculator, desired_ratio_var_H_overlap, desired_var_0_mu_H_overlap, create_scalers, scale_data
 from data_generation import generate_hifi_lofi_data, generate_lofi_data, generate_pretrain_lofi_data, generate_test_data
-from torch.utils.data import DataLoader
 import os
 import mlflow
 
@@ -113,14 +111,14 @@ for exp_num in ["exp_1", "exp_2", "exp_3", "exp_4"]:
     beta_0 = beta_calculator(alpha_0, mode_var_h)  # This is the value of beta_0 that will give us the expected value of var_H.
     var_H = var_H / (y_Global_Scaler.std ** 2)  # This is the max value for the Variance on the H value.
 
-    r_store = [25]
+    r_store = [50]
     var_0_store = []
     n_H_store = []
     for r in r_store:
         r_mu = r  # Data is 20 times more important than the prior
         r_var = r_mu  # Data is at least 20 times more important than the prior.
         # Calculate values for n_H for desired ratio for r_mu
-        n_H_var = desired_ratio_var_H_overlap(r_var)
+        n_H_var = desired_ratio_var_H_overlap(r_var, alpha_0)
         var_0 = desired_var_0_mu_H_overlap(r_mu, n_H_var, var_H)  # Since n_values have to be the same.
         var_0_store.append(var_0)
         n_H_store.append(n_H_var)

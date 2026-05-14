@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 from training_functions import trainer, pretrainer
 from net import NetAnyFunctional
 from utilities import Scaler, beta_calculator, desired_ratio_var_H_overlap, desired_var_0_mu_H_overlap, create_scalers, scale_data
@@ -79,14 +78,14 @@ for exp_num in ["pressure_ratio"]:
     mode_var_h = 0.1  # Value of uncertainty that it defaults to, after calculating the prior. #Need
     alpha_0 = 1  # Can set this to whatever we want. Relevant when we have more fidelities in the data, from which we can weight things relative to each other.
     beta_0 = beta_calculator(alpha_0, mode_var_h)  # This is the value of beta_0 that will give us the expected value of var_H.
-    var_H = 0.05  #
+    var_H = 0.05
 
     # Scale the mode_var_h, beta_0, and var_H
     mode_var_h = mode_var_h / (y_Global_Scaler.std ** 2)  # Value of uncertainty that it defaults to, after calculating the prior. #Nee
     beta_0 = beta_calculator(alpha_0, mode_var_h)  # This is the value of beta_0 that will give us the expected value of var_H.
     var_H = var_H / (y_Global_Scaler.std ** 2)  # This is the max value for the Variance on the H value.
 
-    r_store = [10]
+    r_store = [20]
     var_0_store = []
     n_H_store = []
     for r in r_store:
