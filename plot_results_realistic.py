@@ -72,6 +72,15 @@ lofi_pretrain_data = [x_lofi_scaled.to(device), y_lofi_scaled.to(device)]
 hifi_pretrain_data = [x_hifi_scaled.to(device), y_hifi_scaled.to(device)]
 valid_data = [x_valid_scaled.to(device), y_valid_scaled.to(device)]
 
+def gaussian_nll(input, target, var, eps=1e-6, reduction='mean'):
+    var = var.clamp(min=eps)
+    loss = 0.5 * (torch.log(var) + (input - target).pow(2) / var)
+    if reduction == 'mean':
+        return loss.mean()
+    elif reduction == 'sum':
+        return loss.sum()
+    return loss
+
 def plot_results(model, base_model, scalers):
     plot_model = model.to('cpu')
     plot_model.eval()
@@ -117,24 +126,28 @@ def plot_results(model, base_model, scalers):
     var_H_avg = np.mean(var_test_H.numpy())  # Evaluate and store mse and sigma avg for lofi model
     mse_H = torch.sum((mu_test_H.flatten() - y_test_data.flatten().squeeze().numpy()) ** 2) / len(mu_test.flatten())
     mse_base = torch.sum((mu_test_base.flatten() - y_test_data.flatten().squeeze().numpy()) ** 2) / len(mu_test_base.flatten())
+    nll_H = gaussian_nll(mu_test_H.flatten(), y_test_data.flatten().squeeze(), var_test_H.flatten())
 
     # Plot results
     fig, ax = plt.subplots(dpi=500)  # Create figure
-    ax.fill_between(x_test_sorted, mu_test_H_sorted - var_test_H_sorted, mu_test_H_sorted + var_test_H_sorted, label = '$\mu_{Y_H}(w_f) \pm \sigma^2_{Y_H}(w_f)$', color='green', alpha=0.1, zorder=3)
+    ax.fill_between(x_test_sorted, mu_test_H_sorted - var_test_H_sorted, mu_test_H_sorted + var_test_H_sorted, label = '$\hat\mu_{Y_H}(w_f; \\theta_{\mu_{Y_H}}) \pm \hat\sigma^2_{Y_H}(w_f; \\theta_{\sigma^2_{Y_H}})$', color='green', alpha=0.1, zorder=3)
     ax.plot(x_test_sorted, y_test_sorted, label='Ground Truth', color='orange', zorder=3,linewidth=other_linewidth)
-    ax.plot(x_test_sorted, mu_test_base_sorted, label='$\mu_{Base}(w_f)$', color='blue', zorder=3, linewidth=other_linewidth)
-    ax.plot(x_test_sorted, mu_test_H_sorted, label='$\mu_{Y_H}(w_f)$', color='green', zorder=3, linewidth=linewidth)
+    ax.plot(x_test_sorted, mu_test_base_sorted, label='$\hat\mu_{\\text{Base}}(w_f; \\theta_{\mu_{\\text{Base}}})$', color='grey', zorder=3, linewidth=other_linewidth)
+    ax.plot(x_test_sorted, mu_test_H_sorted, label='$\hat\mu_{Y_H}(w_f; \\theta_{\mu_{Y_H}})$', color='green', zorder=3, linewidth=linewidth, linestyle = '--')
     #ax.plot(x_test_sorted, mu_test_D_sorted + mu_test_L_sorted, label='$\mu_{Y_L}(x) + \mu_{D}(x)$', color='red', zorder=3, linewidth=linewidth)
-    plt.scatter(x_hifi_data[:,0], y_hifi_data, s=scatter_size, label='Hi-Fi Data', color='purple', zorder=1, linewidth=scatter_size)
+    #ax.plot(x_test_sorted, mu_test_L_sorted, label='$\mu_{Y_L}(w_f)$', color='purple', zorder=2, linewidth=linewidth)
+    plt.scatter(x_hifi_data[:,0], y_hifi_data, s=scatter_size, label='Hi-Fi Data', color='brown', zorder=1, linewidth=scatter_size)
+    plt.scatter(x_lofi_data[:,0], y_lofi_data, s=scatter_size, label='Lo-Fi Data', color='darkolivegreen', zorder=2, linewidth=scatter_size)
     ax.set_xlabel(r'$w_f$', fontsize=axis_fontsize)
     ax.set_ylabel(r'$PR$', fontsize=axis_fontsize)
     plt.legend(loc="lower right", fontsize=legend_fontsize)
-    plt.title(r'MSE $\mu_{{Y_H}}(w_f)$: {:.2g}    MSE $\mu_{{Base}}(w_f)$: {:.2g}'.format(mse_H, mse_base), fontsize=title_fontsize)
+    #plt.title(r'MSE $\mu_{{Y_H}}(w_f)$: {:.2g}    MSE $\mu_{{Base}}(w_f)$: {:.2g}'.format(mse_H, mse_base), fontsize=title_fontsize)
     plt.grid()
-    #plt.tight_layout()
-    plt.show()
-    #plt.savefig("realistic_plot.svg", dpi=500)
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig("realistic_plot.svg", dpi=500)
+    return nll_H
 
 model = torch.load(r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\realistic_3_3_var_0_1_r_25\polynomial_polynomial_on_mu_l\degree_3_mu_l_degree_3\r_25_0\final")
 base_model = torch.load(r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\realistic_3_3_var_0_1_r_25\polynomial_polynomial_on_mu_l\degree_3_mu_l_degree_3\mse_model")
-plot_results(model, base_model, scalers)
+nll_H = plot_results(model, base_model, scalers)

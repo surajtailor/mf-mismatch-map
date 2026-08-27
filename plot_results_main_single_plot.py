@@ -3,6 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utilities import unconcatenate_mu, unconcatenate_var, create_scalers, scale_data, beta_calculator, desired_ratio_var_H_overlap, desired_var_0_mu_H_overlap
 from data_generation import generate_pretrain_lofi_data, generate_lofi_data, generate_hifi_lofi_data, generate_test_data
+import pandas as pd
+import mlflow
+import os
 
 device = 'cpu'
 torch.manual_seed(2025)
@@ -11,12 +14,12 @@ np.random.seed(2025)
 # Set plotting parameters
 title_fontsize = 10
 axis_fontsize = 10
-legend_fontsize = 8
+legend_fontsize =11
 other_linewidth = 1
 linewidth = 1.25
 scatter_size = 1.75
 
-for exp_num in ["exp_1", "exp_2"]:
+for exp_num in ["exp_4"]:
     if exp_num == "exp_1":
         def function(x):
             return (x - np.sqrt(2)) * (np.sin(8 * np.pi * x)) ** 2
@@ -162,19 +165,21 @@ for exp_num in ["exp_1", "exp_2"]:
 
         # Plot results
         fig, ax = plt.subplots(dpi=500)  # Create figure
-        ax.fill_between(x_test, mu_test_H - var_test_H, mu_test_H + var_test_H, label='$\mu_{Y_H}(x) \pm \sigma^2_{Y_H}(x)$', color='green', alpha=0.1, zorder=3)
-        ax.plot(x_test, mu_test_L + mu_test_D, label='$\mu_{Y_L}(x)$ + $\mu_{D}(x)$', color='red', alpha=0.5, zorder=3,linewidth=other_linewidth)
+        ax.fill_between(x_test, mu_test_H - var_test_H, mu_test_H + var_test_H, label='$\hat\mu_{Y_H}(x; \\theta_{\mu_{Y_H}}) \pm \hat\sigma^2_{Y_H}(x; \\theta_{\sigma^2_{Y_H}})$', color='green', alpha=0.1, zorder=3)
+        ax.plot(x_test, mu_test_L + mu_test_D, label='$\hat\mu_{Y_L}(x; \\theta_{\mu_{Y_L}})$ + $\hat\mu_{D}(x, \mu_{Y_L}(x; \\theta_{Y_L}); \\theta_{\mu_{D}})$', color='purple', alpha=0.5, zorder=3, linewidth=other_linewidth+2, linestyle = ':')
         ax.plot(x_test, y_test, label='Ground Truth', color='orange', zorder=3, linewidth=other_linewidth)
-        ax.plot(x_test, mu_test_base, label='$\mu_{Base}(x)$', color='blue', zorder=3, linewidth=other_linewidth)
-        ax.plot(x_test, mu_test_H, label='$\mu_{Y_H}(x)$', color='green', zorder=3, linewidth=linewidth)
+        ax.plot(x_test, mu_test_base, label='$\hat\mu_{\\text{Base}}(x; \\theta_{\\text{Base}})$', color='grey', zorder=3, linewidth=other_linewidth, linestyle = '--')
+        ax.plot(x_test, mu_test_H, label='$\hat\mu_{Y_H}(x; \\theta_{\mu_{Y_H}})$', color='green', zorder=3, linewidth=linewidth, linestyle = '--')
+        #plt.scatter(x_hifi_data[:, 0], y_hifi_data, s=scatter_size, label='Hi-Fi Data', color='black', zorder=4,linewidth=scatter_size)
         #plt.scatter(x_hifi_data[:, 0], y_hifi_data, s=scatter_size, label='Hi-Fi Data', color='purple', zorder=1,linewidth=scatter_size)
         ax.set_xlabel(r'$x$', fontsize=axis_fontsize)
         ax.set_ylabel(r'$y$', fontsize=axis_fontsize)
-        plt.legend(loc="lower right", fontsize=legend_fontsize)
-        plt.title("MSE $\mu_{{Y_H}}$: {:.2g}    MSE $\mu_{{Base}}$: {:.2g}".format(mse_H, mse_base),fontsize=title_fontsize)
+        plt.legend(loc="upper left", fontsize=legend_fontsize)
+        #plt.title("MSE $\mu_{{Y_H}}$: {:.2g}    MSE $\mu_{{Base}}$: {:.2g}".format(mse_H, mse_base),fontsize=title_fontsize)
         plt.grid()
-        #plt.savefig("{:s}/plot.png".format(directory), dpi=500)
-        plt.show()
+        plt.tight_layout()
+        plt.savefig(directory, dpi=1000)
+        #plt.show()
 
     # Prior Hyper Parameter = 0  # LEGACY NEVER CHANGED FROM 0
     n_lofi = 1  # NEVER CHANGED FROM 1
@@ -188,7 +193,7 @@ for exp_num in ["exp_1", "exp_2"]:
     beta_0 = beta_calculator(alpha_0, mode_var_h)  # This is the value of beta_0 that will give us the expected value of var_H.
     var_H = var_H / (y_Global_Scaler.std ** 2)  # This is the max value for the Variance on the H value.
 
-    r_store = [50]
+    r_store = [25]
     var_0_store = []
     n_H_store = []
     for r in r_store:
@@ -201,9 +206,9 @@ for exp_num in ["exp_1", "exp_2"]:
         n_H_store.append(n_H_var)
 
     # #Polynomial Functional
-    base_model = torch.load(r"")
-    model = torch.load(r"")
+    base_model = torch.load(r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\exp_4\polynomial_polynomial_on_mu_l\degree_1_mu_l_degree_5\mse_model")
+    model = torch.load(r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\exp_4\polynomial_polynomial_on_mu_l\degree_1_mu_l_degree_5\r_50_0\final")
 
-    plot_results(model, base_model, scalers, start=0.0, end=1.0)
-    plot_results(model, base_model, scalers, start = 0.0, end = 0.8)
-    plot_results(model, base_model, scalers, start = 0.8, end = 1.0)
+    plot_results(model, base_model, scalers, start=0.0, end=1.0, directory=r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\worst_whole.pdf")
+    plot_results(model, base_model, scalers, start = 0.0, end = 0.8, directory=r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\worst_initial.pdf")
+    plot_results(model, base_model, scalers, start = 0.8, end = 1.0, directory = r"C:\Users\Suraj\Documents\01_git_repositories\01_phd_projects\EM_mismatch_approach\worst_end.pdf")
