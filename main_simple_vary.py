@@ -102,7 +102,7 @@ for exp_num in ["simple_scaled"]:
 
     # Training Parameters
     pre_train_iter = 2000
-    train_n_iter = 1000
+    train_n_iter = 2000
     lr = 1e-3
     num_workers = 0
     batch_size = 80
@@ -118,8 +118,6 @@ for exp_num in ["simple_scaled"]:
 
     # Plot frequency
     valid_freq = 1000
-
-    var_H = 0.01  # max value for Variance on H
     var_H_scaled = var_H / (y_Global_Scaler.std ** 2)  # scaled ONCE, not inside the mode_var_h loop
 
     for poly_degree in polynomial_degree_list:

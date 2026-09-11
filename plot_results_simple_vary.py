@@ -301,3 +301,25 @@ fig.colorbar(im, ax=ax, label='NLL (entire domain)')
 plt.tight_layout()
 plt.savefig(os.path.join(exp_num, "nll_heatmap_r_vs_prior.pdf"), dpi=1000, format='pdf')
 plt.close(fig)
+
+# --- Plot: both regions on one axes, for a single chosen mode_var_h_prior ---
+specific_mode_var_h = 1  # <-- set this to whichever prior value you want (must be in mode_var_h_list)
+subset = results_df[results_df['mode_var_h'] == specific_mode_var_h].sort_values('r')
+
+fig, ax = plt.subplots(dpi=1000)
+ax.plot(subset['r'], subset['sig_data'],
+        label='Avg $\\hat\\sigma^2_{Y_H}(x; \\theta_{\\sigma^2_{Y_H}})$ in Hi-Fi Data Region',
+        color='green', marker='x', linewidth=linewidth)
+ax.plot(subset['r'], subset['sig_prior'],
+        label='Avg $\\hat\\sigma^2_{Y_H}(x; \\theta_{\\sigma^2_{Y_H}})$ in No Hi-Fi Data Region',
+        color='blue', marker='x', linewidth=linewidth)
+
+ax.set_xlabel('$r$', fontsize=axis_fontsize)
+ax.set_ylabel('Avg $\\hat\\sigma^2_{Y_H}(x; \\theta_{\\sigma^2_{Y_H}})$', fontsize=axis_fontsize)
+plt.legend(loc="center right", fontsize=legend_fontsize)
+ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=12))
+ax.grid(True, which='both', axis='y', linestyle='--')
+plt.tight_layout()
+plt.savefig(os.path.join(exp_num, "var_r_both_regions_prior_{:s}.pdf".format(str(specific_mode_var_h).replace('.', '_'))),
+            dpi=1000, format='pdf')
+plt.close(fig)
